@@ -19,11 +19,9 @@
 
 #include <vector>
 
-#include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
-#include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -277,19 +275,16 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override;
 
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override;
 
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point) override;
 
     // Internal computations

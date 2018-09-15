@@ -41,6 +41,8 @@
 #include <string>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/serialization/ChArchive.h"
 
@@ -147,36 +149,11 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChBezierCurve>();
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOUT(ChArchiveOut& marchive);
 
-        // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChBezierCurve>();
-
-        // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     /// Utility function to solve for the outCV control points.
@@ -228,6 +205,14 @@ class ChApi ChBezierCurveTracker {
     /// interval and curve parameter within that interval from the last query). As
     /// such, this function should be called with a continuous sequence of locations.
     int calcClosestPoint(const ChVector<>& loc, ChVector<>& point);
+
+    /// Calculate the closest point on the underlying curve to the specified location.
+    /// Return the TNB (tangent-normal-binormal) frame and the curvature at the closest point.
+    /// The ChFrame 'tnb' has X axis along the tangent, Y axis along the normal, and Z axis
+    /// along the binormal.  The frame location is the closest point on the Bezier curve.
+    /// Note that the normal and binormal are not defined at points with zero curvature.
+    /// In such cases, we return an orthonormal frame with X axis along the tangent.
+    int calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature);
 
     /// Set if the path is treated as an open loop or a closed loop for tracking
     void setIsClosedPath(bool isClosedPath);

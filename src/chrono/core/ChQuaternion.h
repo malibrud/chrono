@@ -15,8 +15,8 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
@@ -299,6 +299,7 @@ class ChQuaternion {
 
     /// Convert the quaternion to an angle of rotation and an axis, defined in absolute coords.
     /// Resulting angle and axis must be passed as parameters.
+    /// Note that angle is in [-PI....+PI] range. Also remember  (angle, axis) is the same of (-angle,-axis).
     /// If you need directly the rotation vector=axis * angle, use Q_to_Rotv().
     void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const;
 
@@ -362,9 +363,7 @@ class ChQuaternion {
                             const ChQuaternion<Real>& qdt,
                             const ChVector<Real>& qimm_dtdt);
 
-    // STREAMING
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
@@ -1059,19 +1058,28 @@ inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>&
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
-    if (fabs(data[0]) < 0.99999999) {
-        Real arg = acos(data[0]);
-        Real invsine = 1 / sin(arg);
-        a_angle = 2 * arg;
-        a_axis.x() = invsine * data[1];
-        a_axis.y() = invsine * data[2];
-        a_axis.z() = invsine * data[3];
+    Real sin_squared = data[1] * data[1] + data[2] * data[2] + data[3] * data[3];
+    // For non-zero rotation
+    if (sin_squared > 0) {
+        Real sin_theta = sqrt(sin_squared);
+        a_angle = 2.0 * atan2(sin_theta, data[0]);
+        Real k = 1.0 / sin_theta;
+        a_axis.x() = data[1] * k;
+        a_axis.y() = data[2] * k;
+        a_axis.z() = data[3] * k;
         a_axis.Normalize();
     } else {
-        a_axis.x() = 1;
-        a_axis.y() = 0;
-        a_axis.z() = 0;
-        a_angle = 0;
+        // For almost zero rotation
+        a_angle = 0.0;
+        a_axis.x() = 1;  // data[1] * 2.0;
+        a_axis.y() = 0;  // data[2] * 2.0;
+        a_axis.z() = 0;  // data[3] * 2.0;
+    }
+    // Ensure that angle is always in  [-PI...PI] range
+    if (a_angle > CH_C_PI) {
+        a_angle -= CH_C_2PI;
+    } else if (a_angle < -CH_C_PI) {
+        a_angle += CH_C_2PI;
     }
 }
 
@@ -1247,10 +1255,10 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0],"e0");
-    marchive << CHNVP(data[1],"e1");
-    marchive << CHNVP(data[2],"e2");
-    marchive << CHNVP(data[3],"e3");
+    marchive << CHNVP(data[0], "e0");
+    marchive << CHNVP(data[1], "e1");
+    marchive << CHNVP(data[2], "e2");
+    marchive << CHNVP(data[3], "e3");
 }
 
 template <class Real>
@@ -1258,10 +1266,10 @@ inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0],"e0");
-    marchive >> CHNVP(data[1],"e1");
-    marchive >> CHNVP(data[2],"e2");
-    marchive >> CHNVP(data[3],"e3");
+    marchive >> CHNVP(data[0], "e0");
+    marchive >> CHNVP(data[1], "e1");
+    marchive >> CHNVP(data[2], "e2");
+    marchive >> CHNVP(data[3], "e3");
 }
 
 }  // end namespace chrono

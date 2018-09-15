@@ -33,8 +33,8 @@ namespace hmmwv {
 const std::string HMMWV_TMeasyTire::m_meshName = "hmmwv_tire_POV_geom";
 const std::string HMMWV_TMeasyTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 
-const double HMMWV_TMeasyTire::m_mass = 37.6482;
-const ChVector<> HMMWV_TMeasyTire::m_inertia(17.0254, 31.9445, 17.0254);
+const double HMMWV_TMeasyTire::m_mass = 37.6;
+const ChVector<> HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -46,29 +46,30 @@ HMMWV_TMeasyTire::HMMWV_TMeasyTire(const std::string& name) : ChTMeasyTire(name)
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
-    // weight per tire aprox. 10000 N -> LI = 108
-
+    // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
+    
+    const double lbs2N = 4.4482216153;
     unsigned int li = 108;  // guessed from load spec. of the vehicle
     const double in2m = 0.0254;
     double h = (37.0 - 16.5) * in2m / 2.0;
     double w = 12.5 * in2m;
     double r = h / w;
     double rimdia = 16.5 * in2m;
-    double m = 45.4;
 
-    GuessTruck80Par(li,      // load index
-                    w,       // tire width
-                    r,       // aspect ratio
-                    rimdia,  // rim diameter
-                    m        // rubber mass
+    double load = 3850.0 * lbs2N;
+    
+    GuessTruck80Par(load,   // tire load [N]
+                    w,      // tire width [m]
+                    r,      // aspect ratio []
+                    rimdia  // rim diameter [m]
     );
-    // optional: write a plot file (gnuplot) to check the characteristics
-    // the plots are being generated at initialization of this class
-    // look at the plot: gnuplot 37x12.5x16.5_FL.gpl
-    // inside gnuplot use the command load '37x12.5x16.5_FL.gpl'
-    std::string plotName = "37x12.5x16.5";
-    plotName += this->GetName() + ".gpl";
-    WritePlots(plotName, "37x12.5x16.5");
+}
+
+void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
+    // Write a plot file (gnuplot) to check the tire characteristics.
+    // Inside gnuplot use the command load 'filename'
+    std::string filename = dirname + "/37x12.5x16.5_" + GetName() + ".gpl";
+    WritePlots(filename, "37x12.5x16.5");
 }
 
 // -----------------------------------------------------------------------------
@@ -80,6 +81,7 @@ void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);

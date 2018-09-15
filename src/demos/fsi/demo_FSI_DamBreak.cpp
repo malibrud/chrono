@@ -41,7 +41,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // FSI Interface Includes
 #include "demos/fsi/demo_FSI_DamBreak.h"
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
+    cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist().size() << endl;
 
     // ******************* System Initialize********************************
     // myFsiSystem.InitializeChronoGraphics(CameraLocation, CameraLookAt);

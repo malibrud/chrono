@@ -16,51 +16,165 @@
 #define CHBEAMSECTION_H
 
 #include "chrono_fea/ChApiFEA.h"
+#include "chrono/core/ChMathematics.h"
+
 
 namespace chrono {
 namespace fea {
 
-/// Base class for properties of beam sections.
-/// This material can be shared between multiple beams.
-class ChApiFea ChBeamSection {
-  public:
-    double y_drawsize;
-    double z_drawsize;
-    bool is_circular;
 
-    ChBeamSection() {
-        this->y_drawsize = 0.01;
-        this->z_drawsize = 0.01;
-        this->is_circular = 0;
-    }
 
-    virtual ~ChBeamSection() {}
 
-    /// Sets the rectangular thickness of the beam on y and z directions,
-    /// only for drawing/rendering purposes (these thickness values do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawThickness(double thickness_y, double thickness_z) {
-        this->y_drawsize = thickness_y;
-        this->z_drawsize = thickness_z;
-    }
-    double GetDrawThicknessY() { return this->y_drawsize; }
-    double GetDrawThicknessZ() { return this->z_drawsize; }
+/// Base class for internal variables of materials. 
+/// Especially useful for plasticity, where internal variables are used 
+/// to carry information on plastic flow, accumulated flow, etc.
 
-    /// Tells if the section must be drawn as a circular
-    /// section instead than default rectangular
-    bool IsCircular() { return is_circular; }
-    /// Set if the section must be drawn as a circular
-    /// section instead than default rectangular
-    void SetCircular(bool ic) { is_circular = ic; }
+class ChApiFea ChBeamMaterialInternalData {
+public:
+	ChBeamMaterialInternalData() :
+		p_strain_acc(0)
+	{};
 
-    /// Sets the radius of the beam if in 'circular section' draw mode,
-    /// only for drawing/rendering purposes (this radius value do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-    double GetDrawCircularRadius() { return this->y_drawsize; }
+	virtual ~ChBeamMaterialInternalData() {};
+
+	virtual void Copy(const ChBeamMaterialInternalData& other) {
+		p_strain_acc = other.p_strain_acc;
+	}
+
+	double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };
+
+
+
+/// Base class for properties of all beam sections.
+/// A beam section can be shared between multiple beams.
+/// A beam section contains the models for elasticity, plasticity, damping, etc.
+
+class ChApiFea ChBeamSectionProperties {
+public:
+	double y_drawsize;
+	double z_drawsize;
+	bool is_circular;
+
+	double Area;
+	double density;
+
+
+	ChBeamSectionProperties() {
+		this->y_drawsize = 0.01;
+		this->z_drawsize = 0.01;
+		this->is_circular = 0;
+
+		this->Area = 1;
+		this->density = 1000;
+	}
+
+	virtual ~ChBeamSectionProperties() {}
+
+	/// Sets the rectangular thickness of the beam on y and z directions,
+	/// only for drawing/rendering purposes (these thickness values do NOT
+	/// have any meaning at a physical level, use SetAsRectangularSection()
+	////instead if you want to affect also the inertias of the beam section).
+	void SetDrawThickness(double thickness_y, double thickness_z) {
+		this->y_drawsize = thickness_y;
+		this->z_drawsize = thickness_z;
+	}
+	double GetDrawThicknessY() { return this->y_drawsize; }
+	double GetDrawThicknessZ() { return this->z_drawsize; }
+
+	/// Tells if the section must be drawn as a circular
+	/// section instead than default rectangular
+	bool IsCircular() { return is_circular; }
+	/// Set if the section must be drawn as a circular
+	/// section instead than default rectangular
+	void SetCircular(bool ic) { is_circular = ic; }
+
+	/// Sets the radius of the beam if in 'circular section' draw mode,
+	/// only for drawing/rendering purposes (this radius value do NOT
+	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
+	////instead if you want to affect also the inertias of the beam section).
+	void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
+	double GetDrawCircularRadius() { return this->y_drawsize; }
+
+
+	/// Set the cross sectional area A of the beam (m^2)
+	void SetArea(const double ma) { this->Area = ma; }
+	double GetArea() const { return this->Area; }
+
+	/// Set the density of the beam (kg/m^3)
+	void SetDensity(double md) { this->density = md; }
+	double GetDensity() const { return this->density; }
+
+
+	/// Shortcut: set elastic and plastic constants
+	/// at once, given the y and z widths of the beam assumed
+	/// with rectangular shape.
+	virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
+
+	/// Shortcut: set elastic and plastic constants
+	/// at once, given the diameter of the beam assumed
+	/// with circular shape.
+	virtual void SetAsCircularSection(double diameter) = 0;
+
+};
+
+
+
+
+
+
+//
+// OLD CLASSES FOR BEAM MATERIALS
+//
+
+
+/// Base class for properties of beam sections.
+/// A beam section can be shared between multiple beams.
+/// A beam section contains the models for elasticity, plasticity, damping, etc.
+
+class ChApiFea ChBeamSection {
+public:
+	double y_drawsize;
+	double z_drawsize;
+	bool is_circular;
+
+	ChBeamSection() {
+		this->y_drawsize = 0.01;
+		this->z_drawsize = 0.01;
+		this->is_circular = 0;
+	}
+
+	virtual ~ChBeamSection() {}
+
+	/// Sets the rectangular thickness of the beam on y and z directions,
+	/// only for drawing/rendering purposes (these thickness values do NOT
+	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
+	////instead if you want to affect also the inertias of the beam section).
+	void SetDrawThickness(double thickness_y, double thickness_z) {
+		this->y_drawsize = thickness_y;
+		this->z_drawsize = thickness_z;
+	}
+	double GetDrawThicknessY() { return this->y_drawsize; }
+	double GetDrawThicknessZ() { return this->z_drawsize; }
+
+	/// Tells if the section must be drawn as a circular
+	/// section instead than default rectangular
+	bool IsCircular() { return is_circular; }
+	/// Set if the section must be drawn as a circular
+	/// section instead than default rectangular
+	void SetCircular(bool ic) { is_circular = ic; }
+
+	/// Sets the radius of the beam if in 'circular section' draw mode,
+	/// only for drawing/rendering purposes (this radius value do NOT
+	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
+	////instead if you want to affect also the inertias of the beam section).
+	void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
+	double GetDrawCircularRadius() { return this->y_drawsize; }
+
+};
+
+
+
 
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)

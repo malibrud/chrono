@@ -78,7 +78,7 @@ bool moving_patch = true;
 double slope = 0;
 
 // Particle radius (mm)
-double radius = 20;
+double radius = 40;
 
 // Granular material density (kg/m3)
 double rho = 2000;
@@ -506,10 +506,11 @@ int main(int argc, char* argv[]) {
             // Advance vehicle systems
             driver->Advance(time_step);
             hmmwv->Advance(time_step);
-        } else {
-            // Advance system state (no vehicle created yet)
-            system->DoStepDynamics(time_step);
         }
+
+        // Advance system state (no vehicle created yet)
+        system->DoStepDynamics(time_step);
+
 
 #ifdef CHRONO_OPENGL
         if (render) {
@@ -558,6 +559,7 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetPowertrainType(PowertrainModelType::SIMPLE_MAP);
     hmmwv->SetDriveType(DrivelineType::AWD);
     hmmwv->SetTireType(TireModelType::RIGID);
+    hmmwv->SetVehicleStepSize(time_step);
 
     hmmwv->Initialize();
 
@@ -566,8 +568,6 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
     hmmwv->SetTireVisualizationType(VisualizationType::NONE);
-
-    hmmwv->GetVehicle().SetStepsize(time_step);
 
     return hmmwv;
 }

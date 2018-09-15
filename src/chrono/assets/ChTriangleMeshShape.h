@@ -13,25 +13,18 @@
 #ifndef CHTRIANGLEMESHSHAPE_H
 #define CHTRIANGLEMESHSHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
-/// Class for referencing a triangle mesh shape that can be
-/// visualized in some way. Being a child class of ChAsset, it can
-/// be 'attached' to physics items.
+/// Class for referencing a triangle mesh shape that can be visualized in some way.
+/// As a child class of ChAsset, it can be 'attached' to physics items.
 /// It also defines flags such as 'draw as wireframe', 'do backface culling' etc.
 /// but remember that depending on the type of visualization system
 /// (POVray, Irrlich,etc.) these flags might not be supported.
-
 class ChApi ChTriangleMeshShape : public ChVisualization {
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChTriangleMeshConnected trimesh;
 
     bool wireframe;
@@ -41,10 +34,6 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     ChVector<> scale;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChTriangleMeshShape() {
         wireframe = false;
         backface_cull = false;
@@ -52,17 +41,13 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
 
     virtual ~ChTriangleMeshShape(){};
 
-    //
-    // FUNCTIONS
-    //
-
     geometry::ChTriangleMeshConnected& GetMesh() { return trimesh; }
     void SetMesh(const geometry::ChTriangleMeshConnected& mesh) { trimesh = mesh; }
 
-    bool IsWireframe() { return wireframe; }
+    bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
 
-    bool IsBackfaceCull() { return backface_cull; }
+    bool IsBackfaceCull() const { return backface_cull; }
     void SetBackfaceCull(bool mbc) { backface_cull = mbc; }
 
     const std::string& GetName() const { return name; }
@@ -71,42 +56,14 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     const ChVector<>& GetScale() const { return scale; }
     void SetScale(const ChVector<>& mscale) { scale = mscale; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChTriangleMeshShape>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(trimesh);
-        marchive << CHNVP(wireframe);
-        marchive << CHNVP(backface_cull);
-        marchive << CHNVP(name);
-        marchive << CHNVP(scale);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChTriangleMeshShape>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(trimesh);
-        marchive >> CHNVP(wireframe);
-        marchive >> CHNVP(backface_cull);
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(scale);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChTriangleMeshShape,0)
+CH_CLASS_VERSION(ChTriangleMeshShape, 0)
 
 }  // end namespace chrono
 
